@@ -1,1 +1,614 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combinations, Arrangements & Permutations Calculator</title>
+  <style>
+    :root {
+      --bg: #0f0724;
+      --card: #1a0f2a;
+      --muted: #b9a8d9;
+      --accent1: #8a4bd6; /* violet */
+      --accent2: #6e2fd6; /* deep violet */
+      --glass: rgba(255,255,255,0.04);
+      --glass-2: rgba(255,255,255,0.02);
+      --success: #9fe6b3;
+      --danger: #ff9aa2;
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%; margin: 0;
+      background: linear-gradient(180deg, var(--bg), #140629 60%);
+      color: #eee;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .container {
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 28px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--card), rgba(26,15,42,0.6));
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+    }
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 36px;
+      user-select: none;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    p.lead {
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      user-select: none;
+    }
+    nav button.active {
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color: white;
+      box-shadow: 0 6px 18px rgba(110,47,214,0.3);
+    }
+    .card {
+      background: linear-gradient(180deg, var(--glass), var(--glass-2));
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input[type=number],
+    input[type=text],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
+      background: transparent;
+      color: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      outline-offset: 2px;
+      transition: border-color 0.2s;
+    }
+    input[type=number]:focus,
+    input[type=text]:focus,
+    select:focus {
+      border-color: var(--accent2);
+      background: rgba(255,255,255,0.07);
+    }
+    .flex-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .flex-col {
+      flex: 1 1 150px;
+      min-width: 120px;
+    }
+    .switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      user-select: none;
+    }
+    .switch input[type=checkbox] {
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+    button.primary {
+      padding: 12px 18px;
+      background: var(--accent2);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+      user-select: none;
+    }
+    button.primary:hover {
+      background: var(--accent1);
+    }
+    button.ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      transition: background 0.3s, color 0.3s;
+    }
+    button.ghost:hover {
+      background: rgba(255,255,255,0.05);
+      color: white;
+    }
+    .formula {
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 15px;
+      font-family: monospace;
+      user-select: text;
+      min-height: 44px;
+    }
+    .result {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      font-family: monospace;
+      font-size: 18px;
+      font-weight: 700;
+      user-select: text;
+      min-height: 48px;
+    }
+    .error {
+      color: var(--danger);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .similar-groups-container {
+      margin-top: 16px;
+      display: none;
+    }
+    .note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 18px;
+      line-height: 1.3;
+    }
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      user-select: none;
+    }
+    @media (max-width: 720px) {
+      .flex-row {
+        flex-direction: column;
+      }
+      nav button {
+        font-size: 14px;
+        padding: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Combinations, Arrangements and Permutations Calculator">
+    <header>
+      <div class="logo" aria-hidden="true">C</div>
+      <div>
+        <h1>Combinations, Arrangements & Permutations Calculator</h1>
+        <p class="lead">Choose the type, allow repetitions, and see the formula with the result.</p>
+      </div>
+    </header>
+
+    <nav role="tablist" aria-label="Calculation type selection">
+      <button id="tab-combination" class="active" role="tab" aria-selected="true" aria-controls="panel-combination" tabindex="0">Combinations</button>
+      <button id="tab-arrangement" role="tab" aria-selected="false" aria-controls="panel-arrangement" tabindex="-1">Arrangements</button>
+      <button id="tab-permutation" role="tab" aria-selected="false" aria-controls="panel-permutation" tabindex="-1">Permutations</button>
+    </nav>
+
+    <section id="panel-combination" role="tabpanel" aria-labelledby="tab-combination" tabindex="0" class="card" style="display:block;">
+      <div class="flex-row">
+        <div class="flex-col">
+          <label for="comb-n">n (total elements)</label>
+          <input type="number" id="comb-n" min="0" value="5" aria-describedby="comb-n-desc" />
+          <div id="comb-n-desc" class="note">Number of elements in the set</div>
+        </div>
+        <div class="flex-col">
+          <label for="comb-k">k (choices)</label>
+          <input type="number" id="comb-k" min="0" value="3" aria-describedby="comb-k-desc" />
+          <div id="comb-k-desc" class="note">How many elements we select</div>
+        </div>
+      </div>
+
+      <div class="switch">
+        <input type="checkbox" id="comb-repetition" />
+        <label for="comb-repetition">Allow repetition</label>
+      </div>
+    </section>
+
+    <section id="panel-arrangement" role="tabpanel" aria-labelledby="tab-arrangement" tabindex="0" class="card" style="display:none;">
+      <div class="flex-row">
+        <div class="flex-col">
+          <label for="arr-n">n (total elements)</label>
+          <input type="number" id="arr-n" min="0" value="5" aria-describedby="arr-n-desc" />
+          <div id="arr-n-desc" class="note">Number of elements in the set</div>
+        </div>
+        <div class="flex-col">
+          <label for="arr-k">k (arranged elements)</label>
+          <input type="number" id="arr-k" min="0" value="3" aria-describedby="arr-k-desc" />
+          <div id="arr-k-desc" class="note">How many elements we arrange</div>
+        </div>
+      </div>
+
+      <div class="switch">
+        <input type="checkbox" id="arr-repetition" />
+        <label for="arr-repetition">Allow repetition</label>
+      </div>
+    </section>
+
+    <section id="panel-permutation" role="tabpanel" aria-labelledby="tab-permutation" tabindex="0" class="card" style="display:none;">
+      <div class="flex-row" style="align-items:center;">
+        <div class="flex-col" style="flex: 1;">
+          <label for="perm-n">n (total elements)</label>
+          <input type="number" id="perm-n" min="0" value="5" aria-describedby="perm-n-desc" />
+          <div id="perm-n-desc" class="note">Number of elements in the set</div>
+        </div>
+        <div class="flex-col" style="flex: none; min-width: 180px;">
+          <fieldset>
+            <legend style="color: var(--muted); font-size: 13px; margin-bottom: 6px;">Type of permutations</legend>
+            <label><input type="radio" name="perm-type" value="different" checked /> Permutations of distinct elements</label><br/>
+            <label><input type="radio" name="perm-type" value="similar" /> Permutations of similar groups</label>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="similar-groups-container" id="similar-groups-container">
+        <label for="similar-groups-input">Sizes of similar groups (comma separated)</label>
+        <input type="text" id="similar-groups-input" placeholder="e.g. 3,2,2" aria-describedby="similar-groups-desc" />
+        <div id="similar-groups-desc" class="note">E.g. 3 red, 2 green, 2 blue (sum must equal n)</div>
+      </div>
+    </section>
+
+    <div style="margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+      <button class="primary" id="calculate-btn" aria-live="polite" aria-label="Calculate">CALCULATE</button>
+      <button class="ghost" id="clear-btn" aria-label="Clear fields">Clear</button>
+      <button class="ghost" id="copy-btn" aria-label="Copy result">Copy result</button>
+    </div>
+
+    <div class="formula" aria-live="polite" id="formula">Formula: —</div>
+    <div class="result" aria-live="polite" id="result">Result: —</div>
+    <div class="error" role="alert" id="error"></div>
+
+    <footer> 💜</footer>
+  </div>
+
+<script>
+  // BigInt factorial
+  function factorialBig(n) {
+    n = BigInt(n);
+    if (n < 0n) throw 'n must be a non-negative integer.';
+    let res = 1n;
+    for (let i = 2n; i <= n; i++) res *= i;
+    return res;
+  }
+
+  // Permutations nPr = n!/(n-k)!
+  function nPr(n, k) {
+    n = BigInt(n);
+    k = BigInt(k);
+    if (k > n) return 0n;
+    return factorialBig(n) / factorialBig(n - k);
+  }
+
+  // Combinations nCr = n!/(k!*(n-k)!)
+  function nCr(n, k) {
+    n = BigInt(n);
+    k = BigInt(k);
+    if (k > n) return 0n;
+    if (k > n - k) k = n - k;
+    let numerator = 1n;
+    let denominator = 1n;
+    for (let i = 1n; i <= k; i++) {
+      numerator *= (n - k + i);
+      denominator *= i;
+    }
+    return numerator / denominator;
+  }
+
+  // Format BigInt with commas
+  function formatBigInt(num) {
+    let s = num.toString();
+    let neg = s.startsWith('-');
+    if (neg) s = s.slice(1);
+    let out = '';
+    for (let i = 0; i < s.length; i++) {
+      let pos = s.length - i;
+      out = s[pos - 1] + out;
+      if ((i + 1) % 3 === 0 && pos - 1 > 0) out = ',' + out;
+    }
+    return (neg ? '-' : '') + out;
+  }
+
+  // DOM tabs
+  const tabs = {
+    combination: document.getElementById('tab-combination'),
+    arrangement: document.getElementById('tab-arrangement'),
+    permutation: document.getElementById('tab-permutation'),
+  };
+  const panels = {
+    combination: document.getElementById('panel-combination'),
+    arrangement: document.getElementById('panel-arrangement'),
+    permutation: document.getElementById('panel-permutation'),
+  };
+
+  // Inputs
+  const combNInput = document.getElementById('comb-n');
+  const combKInput = document.getElementById('comb-k');
+  const combRepetitionCheckbox = document.getElementById('comb-repetition');
+
+  // Inputs arrangement
+  const arrNInput = document.getElementById('arr-n');
+  const arrKInput = document.getElementById('arr-k');
+  const arrRepetitionCheckbox = document.getElementById('arr-repetition');
+
+  // Inputs
+  const permNInput = document.getElementById('perm-n');
+  const permTypeRadios = document.querySelectorAll('input[name="perm-type"]');
+  const similarGroupsContainer = document.getElementById('similar-groups-container');
+  const similarGroupsInput = document.getElementById('similar-groups-input');
+
+  // Buttons +outputs
+  const calculateBtn = document.getElementById('calculate-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  const copyBtn = document.getElementById('copy-btn');
+  const formulaEl = document.getElementById('formula');
+  const resultEl = document.getElementById('result');
+  const errorEl = document.getElementById('error');
+
+  let currentTab = 'combination';
+
+  // Switch tabs
+  function switchTab(newTab) {
+    if (newTab === currentTab) return;
+    // update active tab button
+    Object.keys(tabs).forEach(key => {
+      const isActive = (key === newTab);
+      tabs[key].classList.toggle('active', isActive);
+      tabs[key].setAttribute('aria-selected', isActive);
+      tabs[key].setAttribute('tabindex', isActive ? '0' : '-1');
+      panels[key].style.display = isActive ? 'block' : 'none';
+    });
+    currentTab = newTab;
+    updateUI();
+    clearOutput();
+  }
+
+  Object.entries(tabs).forEach(([key, btn]) => {
+    btn.addEventListener('click', () => switchTab(key));
+  });
+
+  // Toggle visibility
+  function updatePermutationTypeUI() {
+    const selected = document.querySelector('input[name="perm-type"]:checked').value;
+    if (selected === 'similar') {
+      similarGroupsContainer.style.display = 'block';
+    } else {
+      similarGroupsContainer.style.display = 'none';
+      similarGroupsInput.value = '';
+    }
+    clearOutput();
+  }
+  permTypeRadios.forEach(radio => {
+    radio.addEventListener('change', updatePermutationTypeUI);
+  });
+
+  // Enable/disable repetition checkbox
+  function updateUI() {
+    errorEl.textContent = '';
+    formulaEl.textContent = 'Formula: —';
+    resultEl.textContent = 'Result: —';
+
+    if(currentTab === 'combination') {
+      combRepetitionCheckbox.disabled = false;
+    } else if(currentTab === 'arrangement') {
+      arrRepetitionCheckbox.disabled = false;
+    } else if(currentTab === 'permutation') {
+      // nothing special here yet
+    }
+  }
+
+  function clearOutput() {
+    errorEl.textContent = '';
+    formulaEl.textContent = 'Formula: —';
+    resultEl.textContent = 'Result: —';
+  }
+
+  clearBtn.addEventListener('click', () => {
+    if(currentTab === 'combination') {
+      combNInput.value = '';
+      combKInput.value = '';
+      combRepetitionCheckbox.checked = false;
+    } else if(currentTab === 'arrangement') {
+      arrNInput.value = '';
+      arrKInput.value = '';
+      arrRepetitionCheckbox.checked = false;
+    } else if(currentTab === 'permutation') {
+      permNInput.value = '';
+      similarGroupsInput.value = '';
+      permTypeRadios.forEach(r => r.checked = (r.value === 'different'));
+      updatePermutationTypeUI();
+    }
+    clearOutput();
+  });
+
+  copyBtn.addEventListener('click', () => {
+    if(resultEl.textContent && resultEl.textContent !== 'Result: —') {
+      navigator.clipboard.writeText(resultEl.textContent.replace('Result: ', '')).then(() => {
+        alert('Copied to clipboard!');
+      });
+    }
+  });
+
+  calculateBtn.addEventListener('click', () => {
+    errorEl.textContent = '';
+    formulaEl.textContent = 'Formula: —';
+    resultEl.textContent = 'Result: —';
+
+    if(currentTab === 'combination') {
+      const n = Number(combNInput.value);
+      const k = Number(combKInput.value);
+      const repetition = combRepetitionCheckbox.checked;
+
+      if(!Number.isInteger(n) || n < 0) {
+        errorEl.textContent = 'Please enter a non-negative integer for n.';
+        return;
+      }
+      if(!Number.isInteger(k) || k < 0) {
+        errorEl.textContent = 'Please enter a non-negative integer for k.';
+        return;
+      }
+      if(k > n && !repetition) {
+        errorEl.textContent = 'k cannot be greater than n if repetition is not allowed.';
+        return;
+      }
+
+      let formula = '';
+      let result;
+      try {
+        if(repetition) {
+          // combinations with repetition: C(n+k-1,k)
+          formula = `C(${n} + ${k} - 1, ${k}) = C(${n + k -1}, ${k})`;
+          result = nCr(n + k -1, k);
+        } else {
+          formula = `C(${n}, ${k}) = ${n}! / (${k}! * (${n} - ${k})!)`;
+          result = nCr(n, k);
+        }
+        formulaEl.textContent = 'Formula: ' + formula;
+        resultEl.textContent = 'Result: ' + formatBigInt(result);
+      } catch(e) {
+        errorEl.textContent = 'Error calculating the result.';
+      }
+    } else if(currentTab === 'arrangement') {
+      const n = Number(arrNInput.value);
+      const k = Number(arrKInput.value);
+      const repetition = arrRepetitionCheckbox.checked;
+
+      if(!Number.isInteger(n) || n < 0) {
+        errorEl.textContent = 'Please enter a non-negative integer for n.';
+        return;
+      }
+      if(!Number.isInteger(k) || k < 0) {
+        errorEl.textContent = 'Please enter a non-negative integer for k.';
+        return;
+      }
+      if(k > n && !repetition) {
+        errorEl.textContent = 'k cannot be greater than n if repetition is not allowed.';
+        return;
+      }
+
+      let formula = '';
+      let result;
+      try {
+        if(repetition) {
+          // arrangements with repetition: n^k
+          formula = `${n}^${k}`;
+          result = BigInt(n) ** BigInt(k);
+        } else {
+          formula = `P(${n}, ${k}) = ${n}! / (${n} - ${k})!`;
+          result = nPr(n, k);
+        }
+        formulaEl.textContent = 'Formula: ' + formula;
+        resultEl.textContent = 'Result: ' + formatBigInt(result);
+      } catch(e) {
+        errorEl.textContent = 'Error calculating the result.';
+      }
+    } else if(currentTab === 'permutation') {
+      const n = Number(permNInput.value);
+      const type = document.querySelector('input[name="perm-type"]:checked').value;
+
+      if(!Number.isInteger(n) || n < 0) {
+        errorEl.textContent = 'Please enter a non-negative integer for n.';
+        return;
+      }
+
+      if(type === 'different') {
+        // permutations of n distinct elements = n!
+        let formula = `${n}!`;
+        try {
+          let result = factorialBig(n);
+          formulaEl.textContent = 'Formula: ' + formula;
+          resultEl.textContent = 'Result: ' + formatBigInt(result);
+        } catch(e) {
+          errorEl.textContent = 'Error calculating the result.';
+        }
+      } else {
+        // permutations of similar groups: n! / (n1! * n2! * ...)
+        const groupsText = similarGroupsInput.value.trim();
+        if(!groupsText) {
+          errorEl.textContent = 'Please enter the sizes of similar groups.';
+          return;
+        }
+        const groups = groupsText.split(',').map(s => s.trim()).filter(s => s.length > 0).map(Number);
+        if(groups.some(g => !Number.isInteger(g) || g < 0)) {
+          errorEl.textContent = 'All group sizes must be non-negative integers.';
+          return;
+        }
+        const sumGroups = groups.reduce((a,b) => a+b, 0);
+        if(sumGroups !== n) {
+          errorEl.textContent = `The sum of group sizes (${sumGroups}) must equal n (${n}).`;
+          return;
+        }
+        try {
+          const numerator = factorialBig(n);
+          const denominators = groups.map(g => factorialBig(g));
+          const denominator = denominators.reduce((a,b) => a * b, 1n);
+          const result = numerator / denominator;
+          let formula = `${n}! / (${groups.map(g => g + '!').join(' * ')})`;
+          formulaEl.textContent = 'Formula: ' + formula;
+          resultEl.textContent = 'Result: ' + formatBigInt(result);
+        } catch(e) {
+          errorEl.textContent = 'Error calculating the result.';
+        }
+      }
+    }
+  });
+
+  // Initialize
+  updateUI();
+  updatePermutationTypeUI();
+
+</script>
+</body>
+</html>
