@@ -80,8 +80,6 @@
     <div id="output" class="output"></div>
   </div>
 
-
-
 <script>
 function updateHint() {
   const hint = document.getElementById("hint");
@@ -140,6 +138,7 @@ function generate() {
   const target = parseInt(document.getElementById("target").value);
   const generators = [];
   const polys = [];
+  const type = document.getElementById("type").value;
 
   for (let i = 1; i <= count; i++) {
     const raw = document.getElementById(`enum${i}`).value;
@@ -147,7 +146,7 @@ function generate() {
     const poly = {};
     values.forEach(exp => poly[exp] = 1);
     polys.push(poly);
-    const terms = values.map(v => `x^${v}`).join(" + ");
+    const terms = values.map(v => type === "exponential" ? `x^${v}/${v}!` : `x^${v}`).join(" + ");
     generators.push(`(${terms})`);
   }
 
@@ -156,13 +155,19 @@ function generate() {
 
   const expanded = Object.entries(total)
     .sort((a,b)=>a[0]-b[0])
-    .map(([exp,coef])=> `${coef===1?"":coef}x^${exp}`)
+    .map(([exp,coef]) => {
+      return type === "exponential" ? `${coef} x^${exp}/${exp}!` : `${coef===1?"":coef}x^${exp}`;
+    })
     .join(" + ");
 
   const coefficient = total[target] || 0;
 
+  const coefficientOutput = type === "exponential"
+    ? `x^${target}/${target}! = ${coefficient}`
+    : `x^${target} = ${coefficient}`;
+
   document.getElementById("output").innerHTML =
-    `Η γεννήτρια είναι:\n${generators.join(" * ")}\n\nΑνάπτυγμα:\n${expanded}\n\n➡️ Συντελεστής του όρου x^${target} = ${coefficient}`;
+    `Η γεννήτρια είναι:\n${generators.join(" * ")}\n\nΑνάπτυγμα:\n${expanded}\n\n➡️ Συντελεστής του όρου ${coefficientOutput}`;
 }
 
 renderEnumerators();
