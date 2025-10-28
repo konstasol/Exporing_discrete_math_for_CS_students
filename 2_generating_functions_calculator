@@ -5,195 +5,226 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generating Functions</title>
 <style>
-  /* Basic page styling */
-  body {
-    font-family: "Poppins", sans-serif;
-    background-color: #1a1a1d;
-    color: #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-  }
-  h1 { color: #c77dff; margin-bottom: 1rem; }
-
-  /* Container styling */
-  .container {
-    background-color: #2c2c34;
-    border-radius: 20px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 700px;
-    box-shadow: 0 0 10px #6a00f4;
-  }
-
-  /* Form inputs styling */
-  select, textarea, input, button {
-    width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    background-color: #3d3d4a;
-    color: #f0f0f0;
-    resize: none;
-  }
-
-  button {
-    background-color: #9d4edd;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  button:hover { background-color: #c77dff; }
-
-  /* Output styling */
-  .output {
-    background-color: #1f1f26;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-top: 1rem;
-    font-family: monospace;
-    white-space: pre-wrap;
-  }
-
-  /* Hint box styling */
-  .hint {
-    background-color: #262630;
-    border-left: 4px solid #9d4edd;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-  }
+    /* Dark mode styling for a cool, techy look */
+    body {
+        font-family: "Poppins", sans-serif;
+        background-color: #1a1a1d; /* Very dark background */
+        color: #f0f0f0; /* Light text */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+    }
+    h1 { color: #c77dff; margin-bottom: 1rem; } /* Purple/pink heading */
+    .container {
+        background-color: #2c2c34; /* Darker container */
+        border-radius: 20px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 700px;
+        box-shadow: 0 0 15px #6a00f4; /* Subtle purple glow */
+    }
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+    select, textarea, input, button {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        background-color: #3d3d4a; /* Input/Select background */
+        color: #f0f0f0;
+        resize: none;
+    }
+    button {
+        background-color: #9d4edd; /* Button color */
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    button:hover { background-color: #c77dff; } /* Button hover effect */
+    .output {
+        background-color: #1f1f26;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+        font-family: monospace; /* Monospace for code/math output */
+        white-space: pre-wrap;
+    }
+    .hint {
+        background-color: #262630;
+        border-left: 4px solid #9d4edd;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
 </style>
 </head>
 <body>
-  <h1>🎲 Generating Functions</h1>
-  <div class="container">
-    <!-- Hint section -->
-    <div class="hint" id="hint">Select a generator type for usage hint.</div>
+    <h1>🎲 Generating Functions</h1>
+    <div class="container">
+        <div class="hint" id="hint">Select a generator type for usage guidance.</div>
 
-    <!-- Generator type selection -->
-    <label for="type">Generator type:</label>
-    <select id="type" onchange="updateHint()">
-      <option value="simple">Simple</option>
-      <option value="exponential">Exponential</option>
-    </select>
+        <label for="type">Generator Type:</label>
+        <select id="type" onchange="updateHint()">
+            <option value="simple">Simple (Ordinary)</option>
+            <option value="exponential">Exponential</option>
+        </select>
 
-    <!-- Number of enumerators -->
-    <label for="count">Number of enumerators:</label>
-    <input type="number" id="count" min="1" value="3" onchange="renderEnumerators()">
+        <label for="count">Number of Enumerators:</label>
+        <input type="number" id="count" min="1" value="3" onchange="renderEnumerators()">
 
-    <!-- Container where enumerator inputs will appear -->
-    <div id="enumerators"></div>
+        <div id="enumerators"></div>
 
-    <!-- Target term -->
-    <label for="target">Target term (e.g., 10):</label>
-    <input type="number" id="target" min="0" value="10">
+        <label for="target">Target Term (e.g., 10):</label>
+        <input type="number" id="target" min="0" value="10">
 
-    <!-- Button to compute -->
-    <button onclick="generate()">🔍 Calculate</button>
-
-    <!-- Output -->
-    <div id="output" class="output"></div>
-  </div>
+        <button onclick="generate()">🔍 Calculate Coefficient</button>
+        <div id="output" class="output"></div>
+    </div>
 
 <script>
-// Updates the hint depending on the generator type
-function updateHint() {
-  const hint = document.getElementById("hint");
-  const type = document.getElementById("type").value;
-  if (type === "simple") {
-    hint.textContent = "Simple generator → for selection problems (e.g., combinations, binomial expansions, distributions).";
-  } else {
-    hint.textContent = "Exponential generator → for arrangements or different objects without order.";
-  }
-}
+    // --- UI/Helper Functions ---
 
-// Renders input boxes for enumerators based on count
-function renderEnumerators() {
-  const container = document.getElementById("enumerators");
-  const count = parseInt(document.getElementById("count").value);
-  container.innerHTML = ""; // Clear previous
-  for (let i = 1; i <= count; i++) {
-    container.innerHTML += `
-      <label for="enum${i}">Enumerator ${i} (accepts e.g., "0-4" or "0,2,4"):</label>
-      <textarea id="enum${i}" rows="2" placeholder="0-3,5,7-9"></textarea>
-    `;
-  }
-}
-
-// Parses user input into an array of numbers
-function parseValues(input) {
-  const parts = input.split(/[\s,]+/).map(p => p.trim()).filter(p => p !== "");
-  const values = new Set();
-
-  for (const part of parts) {
-    if (part.includes("-")) { // Range
-      const [start, end] = part.split("-").map(Number);
-      if (!isNaN(start) && !isNaN(end)) {
-        for (let i = start; i <= end; i++) values.add(i);
-      }
-    } else { // Single number
-      const num = parseInt(part);
-      if (!isNaN(num)) values.add(num);
+    /** Updates the guidance hint based on the selected generator type. */
+    function updateHint() {
+        const hint = document.getElementById("hint");
+        const type = document.getElementById("type").value;
+        if (type === "simple") {
+            hint.textContent = "Simple (Ordinary) Generator → for selection problems (e.g., combinations, binomials, distributions).";
+        } else {
+            hint.textContent = "Exponential Generator → for permutation problems or arranging distinct objects without order.";
+        }
     }
-  }
 
-  return Array.from(values).sort((a, b) => a - b);
-}
-
-// Multiplies two polynomials represented as objects
-function multiplyPolynomials(p1, p2) {
-  const result = {};
-  for (let e1 in p1) {
-    for (let e2 in p2) {
-      const exp = parseInt(e1) + parseInt(e2);
-      result[exp] = (result[exp] || 0) + p1[e1] * p2[e2];
+    /** Renders the input fields for the enumerators based on the count. */
+    function renderEnumerators() {
+        const container = document.getElementById("enumerators");
+        const count = parseInt(document.getElementById("count").value);
+        container.innerHTML = "";
+        for (let i = 1; i <= count; i++) {
+            container.innerHTML += `
+                <label for="enum${i}">Enumerator ${i} (e.g., "0-4" or "0,2,4"):</label>
+                <textarea id="enum${i}" rows="2" placeholder="0-3,5,7-9"></textarea>
+            `;
+        }
     }
-  }
-  return result;
-}
 
-// Main function to generate and calculate coefficient
-function generate() {
-  const count = parseInt(document.getElementById("count").value);
-  const target = parseInt(document.getElementById("target").value);
-  const generators = [];
-  const polys = [];
+    /** Parses the user input string into an array of unique, sorted exponent values. 
+     * Handles single numbers (e.g., "5") and ranges (e.g., "2-5"). */
+    function parseValues(input) {
+        const parts = input.split(/[\s,]+/).map(p => p.trim()).filter(p => p !== "");
+        const values = new Set();
 
-  // Read enumerators and convert them to polynomials
-  for (let i = 1; i <= count; i++) {
-    const raw = document.getElementById(`enum${i}`).value;
-    const values = parseValues(raw);
-    const poly = {};
-    values.forEach(exp => poly[exp] = 1); // Coefficient = 1
-    polys.push(poly);
-    const terms = values.map(v => `x^${v}`).join(" + ");
-    generators.push(`(${terms})`);
-  }
+        for (const part of parts) {
+            if (part.includes("-")) {
+                // Handle ranges like "2-5"
+                const [start, end] = part.split("-").map(Number);
+                if (!isNaN(start) && !isNaN(end) && start <= end) {
+                    for (let i = start; i <= end; i++) values.add(i);
+                }
+            } else {
+                // Handle single numbers
+                const num = parseInt(part);
+                if (!isNaN(num) && num >= 0) values.add(num);
+            }
+        }
 
-  // Multiply all polynomials
-  let total = polys[0];
-  for (let i = 1; i < polys.length; i++) total = multiplyPolynomials(total, polys[i]);
+        return Array.from(values).sort((a, b) => a - b);
+    }
 
-  // Create expanded polynomial string
-  const expanded = Object.entries(total)
-    .sort((a,b)=>a[0]-b[0])
-    .map(([exp,coef])=> `${coef===1?"":coef}x^${exp}`)
-    .join(" + ");
+    // --- Core Math Logic ---
 
-  const coefficient = total[target] || 0;
+    /** Multiplies two polynomials (represented as exponent-coefficient maps). */
+    function multiplyPolynomials(p1, p2) {
+        const result = {}; // Stores the resulting polynomial
+        // p1 = {exp: coef}, p2 = {exp: coef}
+        for (let e1 in p1) {
+            // Need to parse keys as they come from Object.keys (strings)
+            const exp1 = parseInt(e1);
+            const coef1 = p1[e1];
+            
+            for (let e2 in p2) {
+                const exp2 = parseInt(e2);
+                const coef2 = p2[e2];
+                
+                const newExp = exp1 + exp2;
+                const newCoef = coef1 * coef2;
+                
+                // Add the new coefficient to the result for the corresponding exponent
+                result[newExp] = (result[newExp] || 0) + newCoef;
+            }
+        }
+        return result;
+    }
 
-  // Show results
-  document.getElementById("output").innerHTML =
-    `Generating function:\n${generators.join(" * ")}\n\nExpansion:\n${expanded}\n\n➡️ Coefficient of x^${target} = ${coefficient}`;
-}
+    /** Main function to perform the calculation and display the result. */
+    function generate() {
+        const count = parseInt(document.getElementById("count").value);
+        const target = parseInt(document.getElementById("target").value);
+        const generators = []; // Stores the string representation of each generator for output
+        const polys = []; // Stores the polynomial map for each enumerator
+        const type = document.getElementById("type").value;
 
-// Initialize page
-renderEnumerators();
-updateHint();
+        // 1. Process all enumerators
+        for (let i = 1; i <= count; i++) {
+            const raw = document.getElementById(`enum${i}`).value;
+            const values = parseValues(raw);
+            const poly = {}; // {exponent: coefficient}
+            
+            // For Simple Gen. Func., coefficient is always 1 (1*x^k)
+            // For Exp. Gen. Func., coefficient is 1/k! (1/k! * x^k)
+            // In both cases, we use a *placeholder* coefficient of 1 during multiplication
+            // and adjust the final output display accordingly.
+            values.forEach(exp => poly[exp] = 1); 
+            polys.push(poly);
+            
+            // Create the display string for the generator (Simple: x^v, Exp: x^v/v!)
+            const terms = values.map(v => type === "exponential" ? `x^${v}/${v}!` : `x^${v}`).join(" + ");
+            generators.push(`(${terms})`);
+        }
+
+        // 2. Multiply all polynomials together
+        let total = polys[0] || {};
+        for (let i = 1; i < polys.length; i++) {
+            total = multiplyPolynomials(total, polys[i]);
+        }
+
+        // 3. Format the expanded polynomial for output
+        const expanded = Object.entries(total)
+            .sort((a,b)=>a[0]-b[0]) // Sort by exponent
+            .map(([exp,coef]) => {
+                const expNum = parseInt(exp);
+                // Simple: coefficient * x^exp
+                // Exponential: coefficient * (x^exp / exp!)
+                if (type === "exponential") {
+                    return `${coef} x^${expNum}/${expNum}!`;
+                } else {
+                    // Don't show coefficient '1'
+                    return `${coef===1?"":coef}x^${expNum}`;
+                }
+            })
+            .join(" + ");
+
+        // 4. Determine the final coefficient of the target term
+        const coefficient = total[target] || 0;
+
+        // 5. Format the final result
+        const coefficientOutput = type === "exponential"
+            ? `x^${target}/${target}! = ${coefficient}` // The coefficient we found is the multiplier of x^n/n!
+            : `x^${target} = ${coefficient}`; // The coefficient we found is the number of solutions
+
+        document.getElementById("output").innerHTML =
+            `The Generator is:\n${generators.join(" * ")}\n\nExpansion:\n${expanded}\n\n➡️ Coefficient of the term ${coefficientOutput}`;
+    }
+
+    // Initialize UI on load
+    renderEnumerators();
+    updateHint();
 </script>
 </body>
 </html>
