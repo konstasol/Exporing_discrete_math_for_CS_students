@@ -50,7 +50,7 @@ canvas {
 
 <body>
 
-<h2>🔥 Arc Diagram Generator</h2>
+<h2>🌈 Arc Diagram Generator</h2>
 
 <div class="container">
     <input id="nodes" placeholder="Κορυφές πχ A,B,C,D"><br>
