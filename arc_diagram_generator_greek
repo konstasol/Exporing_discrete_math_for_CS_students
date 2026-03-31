@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>Arc Diagram Generator</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+}
+
+.container { margin-top: 20px; }
+
+input {
+    padding: 10px;
+    margin: 5px;
+    width: 320px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    padding: 12px 20px;
+    margin-top: 10px;
+    background: #3b82f6;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover { background: #2563eb; }
+
+canvas {
+    background: white;
+    margin-top: 20px;
+    border-radius: 12px;
+}
+
+.info {
+    margin-top: 10px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🔥 Arc Diagram Generator</h2>
+
+<div class="container">
+    <input id="nodes" placeholder="Κορυφές πχ A,B,C,D"><br>
+    <input id="edges" placeholder="Ακμές πχ A-C,B-D"><br>
+    <input id="colors" placeholder="Χρώματα πχ red,blue,green"><br>
+
+    <button onclick="drawDiagram()">Generate</button>
+    <button onclick="downloadImage()">Download PNG</button>
+
+    <div class="info" id="infoBox"></div>
+</div>
+
+<canvas id="canvas" width="900" height="550"></canvas>
+
+<script>
+
+let lastDrawn = null;
+
+// =====================
+function calculateChromaticClass(nodes, edges) {
+
+    let nodeIndex = {};
+    nodes.forEach((n, i) => nodeIndex[n] = i);
+
+    let conflicts = Array(edges.length).fill(0).map(() => []);
+
+    for (let i = 0; i < edges.length; i++) {
+        for (let j = i + 1; j < edges.length; j++) {
+
+            let [a,b] = edges[i].map(n => nodeIndex[n]);
+            let [c,d] = edges[j].map(n => nodeIndex[n]);
+
+            if (a > b) [a,b] = [b,a];
+            if (c > d) [c,d] = [d,c];
+
+            if ((a < c && c < b && b < d) || (c < a && a < d && d < b)) {
+                conflicts[i].push(j);
+                conflicts[j].push(i);
+            }
+        }
+    }
+
+    let colors = Array(edges.length).fill(-1);
+
+    for (let i = 0; i < edges.length; i++) {
+        let used = new Set();
+
+        conflicts[i].forEach(j => {
+            if (colors[j] !== -1) used.add(colors[j]);
+        });
+
+        let color = 0;
+        while (used.has(color)) color++;
+
+        colors[i] = color;
+    }
+
+    return colors;
+}
+
+// =====================
+function drawDiagram() {
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    let nodes = document.getElementById("nodes").value
+        .split(",").map(x => x.trim()).filter(x => x);
+
+    let edgesRaw = document.getElementById("edges").value.split(",");
+    let palette = document.getElementById("colors").value
+        .split(",").map(x => x.trim()).filter(x => x);
+
+    let edges = edgesRaw
+        .map(e => e.split("-").map(x => x.trim()))
+        .filter(e => e.length === 2 && nodes.includes(e[0]) && nodes.includes(e[1]));
+
+    if (nodes.length === 0 || edges.length === 0) {
+        alert("Βάλε σωστά δεδομένα 😅");
+        return;
+    }
+
+    let edgeColors = calculateChromaticClass(nodes, edges);
+    let chromaticNumber = Math.max(...edgeColors) + 1;
+
+    if (palette.length !== chromaticNumber) {
+        alert(`⚠️ Χρειάζονται ${chromaticNumber} χρώματα`);
+        return;
+    }
+
+    document.getElementById("infoBox").innerText =
+        `Χρωματική τάξη: ${chromaticNumber}`;
+
+    let spacing = canvas.width / (nodes.length + 1);
+    let pos = {};
+
+    nodes.forEach((n, i) => {
+        pos[n] = (i + 1) * spacing;
+    });
+
+    // =========================
+    
+    // =========================
+
+    let maxRadius = 0;
+
+    edges.forEach(edge => {
+        let [u, v] = edge;
+        maxRadius = Math.max(maxRadius, Math.abs(pos[u] - pos[v]) / 2);
+    });
+
+    // 
+    let paddingTop = 40;
+
+    // 
+    let baseY = maxRadius + paddingTop;
+
+    // 
+    let maxAllowedBaseY = canvas.height * 0.55;
+    if (baseY > maxAllowedBaseY) {
+        baseY = maxAllowedBaseY;
+    }
+
+    // 
+    ctx.beginPath();
+    ctx.moveTo(0, baseY);
+    ctx.lineTo(canvas.width, baseY);
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // arc διαγραμμα
+    edges.forEach((edge, i) => {
+
+        let [u,v] = edge;
+
+        let x1 = pos[u];
+        let x2 = pos[v];
+
+        let center = (x1 + x2) / 2;
+        let radius = Math.abs(x1 - x2) / 2;
+
+        ctx.beginPath();
+
+        for (let t = 0; t <= Math.PI; t += 0.01) {
+            let x = center + radius * Math.cos(t);
+            let y = baseY - radius * Math.sin(t);
+
+            if (t === 0) ctx.moveTo(x,y);
+            else ctx.lineTo(x,y);
+        }
+
+        ctx.strokeStyle = palette[edgeColors[i]];
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    });
+
+    // κυκλακια
+    nodes.forEach(n => {
+
+        let x = pos[n];
+
+        ctx.beginPath();
+        ctx.arc(x, baseY, 12, 0, 2 * Math.PI);
+
+        ctx.fillStyle = "#000";
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(n, x, baseY);
+    });
+
+    lastDrawn = canvas;
+}
+
+// =====================
+function downloadImage() {
+
+    if (!lastDrawn) {
+        alert("Κάνε πρώτα generate 😅");
+        return;
+    }
+
+    let exportCanvas = document.createElement("canvas");
+    exportCanvas.width = lastDrawn.width;
+    exportCanvas.height = lastDrawn.height;
+
+    let ctx = exportCanvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    ctx.drawImage(lastDrawn, 0, 0);
+
+    let link = document.createElement("a");
+    link.download = "arc-diagram.png";
+    link.href = exportCanvas.toDataURL("image/png");
+    link.click();
+}
+
+</script>
+
+</body>
+</html>
